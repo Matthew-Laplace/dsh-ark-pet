@@ -1,0 +1,51 @@
+{
+  "name": "dsh-ark-pet",
+  "version": "0.1.0",
+  "description": "Arknights pet library and custom Codex spritesheet imports for DeepSeek Harness. 方舟干员库与自定义图片桌宠。",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
+    "./cordis.patch.yml": "./cordis.patch.yml"
+  },
+  "files": ["src", "lib", "assets/rookie", "data", "locale", "cordis.patch.yml", "icon.svg", "LICENSE", "NOTICE.md", "licenses"],
+  "engines": { "node": ">=22.19.0" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test test/*.test.js",
+    "test:browser": "node scripts/browser-test.mjs",
+    "check": "npm run test && npm run build && npm run test:browser",
+    "prepack": "npm run test && npm run build"
+  },
+  "icon": "icon.svg",
+  "peerDependencies": {
+    "@deepseek-ai/dsh-client-ui-slots": ">=0.1.0-rc.6",
+    "@deepseek-ai/dsh-host-webserver": ">=0.1.0-rc.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.12",
+    "playwright": "^1.56.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": ["@deepseek-ai/dsh-client-ui-slots"]
+    }
+  },
+  "repository": { "type": "git", "url": "git+https://github.com/Matthew-Laplace/dsh-ark-pet.git" },
+  "homepage": "https://github.com/Matthew-Laplace/dsh-ark-pet#readme",
+  "bugs": { "url": "https://github.com/Matthew-Laplace/dsh-ark-pet/issues" },
+  "author": "Matthew-Laplace",
+  "license": "MIT",
+  "keywords": ["dsh", "dsh-plugin", "deepseek-harness", "desktop-pet", "codex-pet", "arknights", "明日方舟", "桌宠"]
+}

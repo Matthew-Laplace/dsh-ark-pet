@@ -1,0 +1,8 @@
+{
+  "id": "rookie",
+  "displayName": "Rookie",
+  "description": "原创小机器人 Rookie，全部由 Python 代码绘制，不含任何第三方素材。 / An original little robot drawn entirely in Python code, with no third-party assets.",
+  "kind": "atlas",
+  "spritesheetPath": "spritesheet.png",
+  "spriteVersionNumber": 1
+}
