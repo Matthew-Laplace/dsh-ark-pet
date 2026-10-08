@@ -31,7 +31,11 @@ dsh plugin --profile desktop add github:Matthew-Laplace/dsh-ark-pet
 
 `--profile` 填你实际在用的那个：桌面应用是 `desktop`，`dsh web` 是 `web`。装完重启 DSH（桌面应用要完全退出再打开，不是刷新页面）。
 
+预构建包也放在 [Releases](https://github.com/Matthew-Laplace/dsh-ark-pet/releases/latest) 里。pnpm 11.9 及以上可以直接装 `dsh-ark-pet-0.1.0.tgz`；pnpm 11.0–11.8 装裸 tarball 链接会报 `ERR_PNPM_MISSING_TARBALL_INTEGRITY`，请用上面的 GitHub 路径。
+
 Use the profile you actually run: `desktop` for the desktop app, `web` for `dsh web`. Restart DSH after installing.
+
+A prebuilt `dsh-ark-pet-0.1.0.tgz` is attached to [Releases](https://github.com/Matthew-Laplace/dsh-ark-pet/releases/latest). pnpm 11.9 and later can install that tarball; pnpm 11.0–11.8 fails on a bare tarball URL with `ERR_PNPM_MISSING_TARBALL_INTEGRITY`, so use the GitHub path above instead.
 
 ## 使用 / Usage
 
