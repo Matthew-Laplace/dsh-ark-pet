@@ -46,6 +46,9 @@ window.__ModuleLoader__.load({
   id: 'dsh-ark-pet',
   factory: require => {
     const react = require('react')
+    // The pet host is a React portal, not an imperative DOM write: React owns the
+    // node, unmounting removes it, and the top-level stacking context keeps side
+    // drawers from covering the pet. The fallback renders in place.
     let createPortal = null
     try { createPortal = require('react-dom').createPortal } catch { createPortal = null }
 

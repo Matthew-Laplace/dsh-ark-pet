@@ -78,12 +78,13 @@ function u32(value) {
 }
 
 export function makeRequest({ method = 'GET', url = '/ark-pet/api/state', headers = {}, body } = {}) {
+  const finalHeaders = { host: '127.0.0.1:19387', ...headers }
   const chunks = body === undefined ? [] : [Buffer.isBuffer(body) ? body : Buffer.from(String(body))]
-  if (body !== undefined && headers['content-length'] === undefined) headers['content-length'] = String(chunks[0].length)
+  if (body !== undefined && finalHeaders['content-length'] === undefined) finalHeaders['content-length'] = String(chunks[0].length)
   return {
     method,
     url,
-    headers,
+    headers: finalHeaders,
     destroyed: false,
     resume() {},
     iterator: () => Readable.from(chunks),

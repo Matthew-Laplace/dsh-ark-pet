@@ -56,7 +56,7 @@ Arknights characters and artwork belong to Hypergryph and their respective right
 
 ## 安全边界 / Security boundary
 
-- 所有接口挂在 `/ark-pet/` 前缀下，写操作要求同源请求并带 `x-dsh-ark-pet: 1` 标头，同时复用 DSH 的 `connection.requestRejection` 检查。
+- 所有接口挂在 `/ark-pet/` 前缀下。web 载体本身不带鉴权与 Origin 策略，所以路由自己检查：装了 connection 服务时用它的 `requestRejection`，没装时用本地同源闸门（Host 必须是回环地址、拒绝 `Sec-Fetch-Site: cross-site`、Origin 必须与 Host 同源）。写操作还要求 `x-dsh-ark-pet: 1` 标头。
 - 图片只做头部解析，不做解码；单张上限 8 MiB，动画图片被拒绝。
 - 下载逐个校验 Git blob 哈希，且只从固定 commit 读取；重定向被拒绝。
 - 数据目录 `${DSH_HOME:-~/.dsh}/ark-pet`，安装前拒绝符号链接与越界路径。

@@ -3,7 +3,27 @@ import { ActivityTracker } from './activity.js'
 import { PetError, MAX_IMAGE_BYTES } from './image.js'
 
 export const name = 'ark-pet'
-export const inject = ['webServer', 'connection']
+export const inject = ['webServer']
+
+const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]', '::1'])
+
+/**
+ * Trust gate for the plugin's own route prefix. The web carrier owns no
+ * authentication or Origin policy, so the route checks the request itself. When the
+ * connection service is installed its documented check is the authority; this local
+ * gate keeps the route protected in a profile that composes no connection plugin.
+ */
+export function localRejection(req) {
+  const headers = req.headers ?? {}
+  const authority = String(headers.host ?? '').toLowerCase()
+  const host = authority.replace(/:\d+$/, '')
+  if (!host || !LOOPBACK.has(host)) return 403
+  if (String(headers['sec-fetch-site'] ?? '').toLowerCase() === 'cross-site') return 403
+  const origin = headers.origin
+  if (origin === undefined) return undefined
+  if (String(origin).toLowerCase() === 'null') return 403
+  try { return new URL(String(origin)).host.toLowerCase().replace(/:\d+$/, '') === host ? undefined : 403 } catch { return 403 }
+}
 
 function json(res, status, value) {
   res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' })
@@ -38,7 +58,7 @@ async function bodyJson(req) {
 export function makeHandler(store, activity, connection) {
   return async (req, res) => {
     try {
-      const rejection = connection.requestRejection(req)
+      const rejection = connection ? connection.requestRejection(req) : localRejection(req)
       if (rejection) { req.resume(); json(res, rejection, { error: '未授权的请求 / Unauthorized request' }); return }
       const url = new URL(req.url, 'http://127.0.0.1')
       if (!['GET', 'HEAD', 'POST'].includes(req.method)) { json(res, 405, { error: '不支持该方法 / Method not allowed' }); return }
@@ -88,8 +108,10 @@ export function makeHandler(store, activity, connection) {
 export function apply(ctx, config = {}) {
   const store = new PetStore(config).init()
   const tracker = new ActivityTracker()
+  // Optional: the documented trust check when the connection service is composed.
+  const connection = ctx.get('connection') ?? null
   ctx.effect(() => {
-    const dispose = ctx.webServer.register({ kind: 'prefix', path: '/ark-pet/', handler: makeHandler(store, tracker, ctx.connection) })
+    const dispose = ctx.webServer.register({ kind: 'prefix', path: '/ark-pet/', handler: makeHandler(store, tracker, connection) })
     return () => { store.dispose(); dispose() }
   }, 'ark-pet: private routes')
   ctx.effect(() => {

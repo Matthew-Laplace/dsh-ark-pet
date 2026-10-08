@@ -9,11 +9,11 @@ import { makePng, makeRequest, makeResponse } from './helpers.js'
 
 const packageRoot = fileURLToPath(new URL('../', import.meta.url))
 
-function boot() {
+function boot(connection) {
   const routes = [], listeners = new Map()
   const ctx = {
     webServer: { register: route => { routes.push(route); return () => {} } },
-    connection: { requestRejection: () => undefined },
+    get: name => (name === 'connection' ? connection : undefined),
     effect: callback => { const dispose = callback(); return typeof dispose === 'function' ? dispose : () => {} },
     on: (name, listener) => { listeners.set(name, listener); return () => listeners.delete(name) },
   }
@@ -77,6 +77,34 @@ test('rejects unauthorized, unsafe, and unknown requests', async () => {
   const notFound = makeResponse()
   await route.handler(makeRequest({ url: '/ark-pet/api/missing' }), notFound)
   assert.equal(notFound.status, 404)
+})
+
+test('guards its own route when no connection service is composed', async () => {
+  const { route } = boot()
+  const withoutHost = makeResponse()
+  await route.handler(makeRequest({ url: '/ark-pet/api/state', headers: { host: '' } }), withoutHost)
+  assert.equal(withoutHost.status, 403)
+
+  const foreignHost = makeResponse()
+  await route.handler(makeRequest({ url: '/ark-pet/api/state', headers: { host: 'evil.example' } }), foreignHost)
+  assert.equal(foreignHost.status, 403)
+
+  const foreignOrigin = makeResponse()
+  await route.handler(makeRequest({ url: '/ark-pet/api/state', headers: { host: '127.0.0.1:19387', origin: 'https://evil.example' } }), foreignOrigin)
+  assert.equal(foreignOrigin.status, 403)
+
+  const sameOrigin = makeResponse()
+  await route.handler(makeRequest({ url: '/ark-pet/api/state', headers: { host: '127.0.0.1:19387', origin: 'http://127.0.0.1:19387' } }), sameOrigin)
+  assert.equal(sameOrigin.status, 200)
+})
+
+test('delegates the trust check to the connection service when it is composed', async () => {
+  let seen = 0
+  const { route } = boot({ requestRejection: request => { seen++; return request.headers.host === 'blocked' ? 401 : undefined } })
+  const blocked = makeResponse()
+  await route.handler(makeRequest({ url: '/ark-pet/api/state', headers: { host: 'blocked' } }), blocked)
+  assert.equal(blocked.status, 401)
+  assert.equal(seen, 1)
 })
 
 test('applies configuration, imports an image, and rejects oversized bodies', async () => {
